@@ -1,0 +1,14 @@
+# https://bugs.chromium.org/p/chromedriver/issues/detail?id=3671&q=polish&can=1
+# issues with Polish (Programmers) keyboard
+# keyboard Polski(214) works fine.
+# https://chromedriver.chromium.org/help/keyboard-support
+# Issues with sending long text by Selenium "send_keys"
+# https://github.com/seleniumhq/selenium-google-code-issue-archive/issues/3732
+#
+# Selenium performance is restricted by requirement to emulate user behaviour.
+# That's the reason why it types the text "key by key".
+# If you want to overcome this restriction you have two options:
+# 1) Pasting the text from the clipboard (for local use only)
+# 2) Executing JavaScript that directly assigns value of the target element
+# JavascriptExecutor js = (JavascriptExecutor ) driver;
+# js.executeScript("arguments[0].value='"+longText+"'", element);
