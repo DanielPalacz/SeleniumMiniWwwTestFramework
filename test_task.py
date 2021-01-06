@@ -9,12 +9,11 @@
 8. Sprawdzenie obecności szacowanego czasu wykonania
 """
 
-from selenium import webdriver
-from webdriver_manager.chrome import ChromeDriverManager
 import pytest
+from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.wait import WebDriverWait
-
+from webdriver_manager.chrome import ChromeDriverManager
 
 # https://sportowefakty.wp.pl/
 # skoki-narciarskie/917575/69-turniej-czterech-skoczni-pierwsza-proba-sil-dla-kamila-stocha-co-za-skok-pola
@@ -55,6 +54,7 @@ class TimeEstimationHasBeenDone(object):
     initial_estimated_time_text - used to recognize that the estimated time value has changed
     returns True once estimated time value has been recalculated
     """
+
     def __init__(self, estimated_time_xpath):
         self.estimated_time_xpath = estimated_time_xpath
         self.initial_estimated_time_text = "godzina"
@@ -74,6 +74,7 @@ class CostEstimationHasBeenDone(object):
     initial_translation_cost_text - used to recognize that the estimated cost value has changed
     returns True once estimated cost value has been recalculated
     """
+
     def __init__(self, translation_cost_xpath):
         self.translation_cost_xpath = translation_cost_xpath
         self.initial_translation_cost_text = "z 10 zł"
@@ -90,8 +91,8 @@ class CostEstimationHasBeenDone(object):
 class TurboMainPage:
     """Page Object class for main page: 'https://turbotlumaczenia.pl/'"""
 
-    def __init__(self, webdriver):
-        self.driver = webdriver
+    def __init__(self, webdriver_el):
+        self.driver = webdriver_el
         self.accept_cookies_xpath = "//button[text()='Akceptuję']"
         self.decline_cookies_xpath = "//i[contains(@class, 'fa fa-times')]"
         self.decline_cookies_class_name = "fa-times"
@@ -117,8 +118,8 @@ class TurboMainPage:
 class TurboFormOrderPage:
     """Page Object class for Order Form page: 'https://panel.turbotlumaczenia.pl/pl/order/write?from=cta'"""
 
-    def __init__(self, webdriver):
-        self.driver = webdriver
+    def __init__(self, webdriver_el):
+        self.driver = webdriver_el
         self.translateto_menu_xpath = "//div[contains(@class, 'content__input')]/span[@id='target_lang_label']"
         self.translateto_niemiecki_xpath = "//li[@data-name='Niemiecki']"
         self.proofreading_id = "proofreading"
@@ -229,4 +230,4 @@ if __name__ == "__main__":
     all_test_variants = [name_el for name_el in dir(TestDogadamyCie) if "test_" in name_el]
     print("Below variants of Main Test test are implemented:")
     for i, v in enumerate(all_test_variants):
-        print("Var_", i+1, ". ", v, sep="")
+        print("Var_", i + 1, ". ", v, sep="")
