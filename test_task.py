@@ -16,11 +16,10 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.wait import WebDriverWait
 
 
-
 # https://sportowefakty.wp.pl/
 # skoki-narciarskie/917575/69-turniej-czterech-skoczni-pierwsza-proba-sil-dla-kamila-stocha-co-za-skok-pola
 
-TEXT_TRANSLATE = """69. Turniej Czterech Skoczni. Pierwsza próba sił dla Kamila Stocha! Co za skok Polaka!
+TEXT_TO_TRANSLATE = """69. Turniej Czterech Skoczni. Pierwsza próba sił dla Kamila Stocha! Co za skok Polaka!
 Halvor Egner Granerud postraszył na treningu, ale kwalifikacje w Bischofshofen wygrał już Kamil.
 Polak zwyciężył po długim pięknym stylowo skoku. Norweg zajął 3 miejsce.
 Sensacją eliminacji jest odpadnięcie Anze Laniska. Najważniejsze jednak, że Stoch wygrał próbę nerwów.
@@ -40,12 +39,12 @@ Do środowego konkursu łącznie awansowało siedmiu Polaków.
 Z dobrej strony pokazał się Aleksander Zniszczoł, który po próbie na 126. metr zajął 18. miejsce.
 Fajerwerków nie odpalili w kwalifikacjach Andrzej Stękała i Piotr Żyła sklasyfikowani na 26. i 28. lokacie.
 Żyła nie raz przyzwyczaił jednak, że w dzień kwalifikacyjny i w dzień konkursowy prezentuje zupełnie inne oblicza.
-Z piątej dziesiątki do konkursu awansowali 42. Klemens Murańka i 45. Maciej Kot. 
+Z piątej dziesiątki do konkursu awansowali 42. Klemens Murańka i 45. Maciej Kot.
 Pary, w których będą skakać Biało-Czerwoni w środę, prezentują się bardzo ciekawie.
-Stękała otworzy konkurs, a jego rywalek w pierwszej parze dnia będzie sam Karl Geiger. 
-Niemiec jest 4ty w turnieju, ale w części austriackiej obniżył loty. W kwalifikacjach był 25. po skoku na 123,5 metra. 
-W eliminacjach panowały bardzo dobre warunki do skakania. Wiatr nie przekraczał 0,5 m/s. 
-Momentami wiało trochę mocniej w plecy, ale i tak - po raz kolejny w tym turnieju - na warunki nie można narzekać. 
+Stękała otworzy konkurs, a jego rywalek w pierwszej parze dnia będzie sam Karl Geiger.
+Niemiec jest 4ty w turnieju, ale w części austriackiej obniżył loty. W kwalifikacjach był 25. po skoku na 123,5 metra.
+W eliminacjach panowały bardzo dobre warunki do skakania. Wiatr nie przekraczał 0,5 m/s.
+Momentami wiało trochę mocniej w plecy, ale i tak - po raz kolejny w tym turnieju - na warunki nie można narzekać.
 Wszyscy skakali z 9. belki startowej. Czekamy już na wielki finał 69. Turnieju Czterech Skoczni."""
 
 
@@ -107,9 +106,11 @@ class TurboMainPage:
         self.driver.find_element_by_class_name(self.decline_cookies_class_name).click()
 
     def click_accept_cookies(self):
+        """Accepting loading cookies method based on xpath selector."""
         self.driver.find_element_by_xpath(self.accept_cookies_xpath).click()
 
     def goto_wycena_tlumaczenia(self):
+        """Navigating to Order Form www page (PL: Wycena tłumaczenia)."""
         self.driver.find_element_by_xpath(self.wycena_tlumaczenia_xpath).click()
 
 
@@ -126,10 +127,11 @@ class TurboFormOrderPage:
         self.estimated_cost_value_xpath = "//span[@data-bind-expected-price=''][@class='content__strong']"
 
     def click_translateto_menu(self):
+        """Opening target language menu."""
         self.driver.find_element_by_xpath(self.translateto_menu_xpath).click()
 
     def choose_translateto_niemiecki(self):
-        """Choosing target language  of translation as german."""
+        """Choosing target language of translation as german."""
         niemiecki_buttons = self.driver.find_elements_by_xpath(self.translateto_niemiecki_xpath)
         for niemiecki in niemiecki_buttons:
             if niemiecki.is_displayed():
@@ -147,7 +149,6 @@ class TurboFormOrderPage:
 
     def is_estimated_time_value_visible(self) -> bool:
         """Method checks if estimated time value has been recalculated and if result is visible.
-
         It is done in 2 steps:
         -- 1. initial check if estimated time value is displayed
         -- 2. checking if value has been recalculated (not displaying def values) by using Custom Wait
@@ -161,12 +162,12 @@ class TurboFormOrderPage:
 
     def is_estimated_cost_value_visible(self) -> bool:
         """Method checks if estimated cost value has been recalculated and if result is visible.
-
         It is done in 2 steps:
         -- 1. initial check if estimated cost value is displayed
-        -- 2. checking if value has been recalculated (not displaying def values) by using Custom Wait
+        -- 2. checking if value has been recalculated (not def values) by using Custom Wait
         method returns True/False value"""
-        estimated_cost_value = self.driver.find_element_by_xpath(self.estimated_cost_value_xpath)
+        estimated_cost_value = \
+            self.driver.find_element_by_xpath(self.estimated_cost_value_xpath)
         if estimated_cost_value.is_displayed():
             exp_wait = WebDriverWait(self.driver, 10)
             return exp_wait.until(CostEstimationHasBeenDone(self.estimated_cost_value_xpath))
@@ -175,27 +176,26 @@ class TurboFormOrderPage:
 
 
 # https://bugs.chromium.org/p/chromedriver/issues/detail?id=3671&q=polish&can=1
-#
 # issues with Polish (Programmers) keyboard
 # keyboard Polski(214) works fine.
 # https://chromedriver.chromium.org/help/keyboard-support
-
 # Issues with sending long text by Selenium "send_keys"
 # https://github.com/seleniumhq/selenium-google-code-issue-archive/issues/3732
 #
-# Selenium performance is restricted by the requirement to emulate user behaviour. That's the reason why it types the text "key by key".
+# Selenium performance is restricted by requirement to emulate user behaviour.
+# That's the reason why it types the text "key by key".
 # If you want to overcome this restriction you have two options:
 # 1) Pasting the text from the clipboard (for local use only)
-# 2) Executing JavaScript code that directly assigns value of the target element
+# 2) Executing JavaScript that directly assigns value of the target element
 # JavascriptExecutor js = (JavascriptExecutor ) driver;
 # js.executeScript("arguments[0].value='"+longText+"'", element);
 
 class TestDogadamyCie:
+    """Pytest test class implementing test cases for the given scenario."""
 
     @pytest.fixture()
     def setup(self):
         self.chrome_options = Options()
-        # self.chrome_options.add_experimental_option('prefs', {'intl.accept_languages': 'en,en_US'})
         self.chrome_options.add_argument("--lang=pl")
         self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=self.chrome_options)
         # self.driver.implicitly_wait(10)
@@ -205,7 +205,7 @@ class TestDogadamyCie:
 
     @pytest.mark.skip()
     def test_dogadamycie1(self, setup):
-        """Test1: Declined Cookies flow."""
+        """Test1: Declined initial Cookies flow."""
         self.driver.get("https://turbotlumaczenia.pl/")
         main_turbo_page = TurboMainPage(self.driver)
         main_turbo_page.click_decline_cookies()
@@ -214,12 +214,14 @@ class TestDogadamyCie:
         form_order_page.click_translateto_menu()
         form_order_page.choose_translateto_niemiecki()
         form_order_page.choose_add_proofreading()
-        form_order_page.provide_text_to_translation_area(TEXT_TRANSLATE)
-        assert form_order_page.is_estimated_time_value_visible(), "Estimated time is not properly displayed"
-        assert form_order_page.is_estimated_cost_value_visible(), "Estimated cost is not properly displayed"
+        form_order_page.provide_text_to_translation_area(TEXT_TO_TRANSLATE)
+        assert form_order_page.is_estimated_time_value_visible(), \
+            "Estimated time is not properly displayed"
+        assert form_order_page.is_estimated_cost_value_visible(), \
+            "Estimated cost is not properly displayed"
 
     def test_dogadamycie2(self, setup):
-        """Test2: Aceepted Cookies flow."""
+        """Test1: Declined initial Cookies flow."""
         self.driver.get("https://turbotlumaczenia.pl/")
         main_turbo_page = TurboMainPage(self.driver)
         main_turbo_page.click_accept_cookies()
@@ -228,6 +230,18 @@ class TestDogadamyCie:
         form_order_page.click_translateto_menu()
         form_order_page.choose_translateto_niemiecki()
         form_order_page.choose_add_proofreading()
-        form_order_page.provide_text_to_translation_area(TEXT_TRANSLATE)
-        assert form_order_page.is_estimated_time_value_visible(), "Estimated time is not properly displayed"
-        assert form_order_page.is_estimated_cost_value_visible(), "Estimated cost is not properly displayed"
+        form_order_page.provide_text_to_translation_area(TEXT_TO_TRANSLATE)
+        assert form_order_page.is_estimated_time_value_visible(), \
+            "Estimated time is not properly displayed"
+        assert form_order_page.is_estimated_cost_value_visible(), \
+            "Estimated cost is not properly displayed"
+
+
+if __name__ == "__main__":
+    print("Main Test case definition is as following:\n")
+    print(__doc__)
+    print()
+    all_test_variants = [name_el for name_el in dir(TestDogadamyCie) if "test_" in name_el]
+    print("Below variants of Main Test test are implemented:")
+    for i, v in enumerate(all_test_variants):
+        print("Var_", i+1, ". ", v, sep="")
