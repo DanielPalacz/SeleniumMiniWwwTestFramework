@@ -12,13 +12,15 @@
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 import pytest
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.wait import WebDriverWait
+
 
 
 # https://sportowefakty.wp.pl/
 # skoki-narciarskie/917575/69-turniej-czterech-skoczni-pierwsza-proba-sil-dla-kamila-stocha-co-za-skok-pola
 
-TEXT_TRANSLATE = """
-69. Turniej Czterech Skoczni. Pierwsza próba sił dla Kamila Stocha! Co za skok Polaka! Sensacyjna porażka Słoweńca.
+TEXT_TRANSLATE = """69. Turniej Czterech Skoczni. Pierwsza próba sił dla Kamila Stocha! Co za skok Polaka!
 Halvor Egner Granerud postraszył na treningu, ale kwalifikacje w Bischofshofen wygrał już Kamil.
 Polak zwyciężył po długim pięknym stylowo skoku. Norweg zajął 3 miejsce.
 Sensacją eliminacji jest odpadnięcie Anze Laniska. Najważniejsze jednak, że Stoch wygrał próbę nerwów.
@@ -47,6 +49,44 @@ Momentami wiało trochę mocniej w plecy, ale i tak - po raz kolejny w tym turni
 Wszyscy skakali z 9. belki startowej. Czekamy już na wielki finał 69. Turnieju Czterech Skoczni."""
 
 
+class TimeEstimationHasBeenDone(object):
+    """Custom Wait Condition for checking that an estimated time value has been recalculated.
+
+    estimated_time_xpath - xpath used to find the estimated time value element
+    initial_estimated_time_text - used to recognize that the estimated time value has changed
+    returns True once estimated time value has been recalculated
+    """
+    def __init__(self, estimated_time_xpath):
+        self.estimated_time_xpath = estimated_time_xpath
+        self.initial_estimated_time_text = "godzina"
+
+    def __call__(self, driver):
+        estimated_time_value = driver.find_element_by_xpath(self.estimated_time_xpath)
+        if len(estimated_time_value.text) > len(self.initial_estimated_time_text):
+            return True
+        else:
+            return False
+
+
+class CostEstimationHasBeenDone(object):
+    """Custom Wait Condition for checking that an cost value has been recalculated.
+
+    estimated_time_xpath - xpath used to find the estimated cost value element
+    initial_translation_cost_text - used to recognize that the estimated cost value has changed
+    returns True once estimated cost value has been recalculated
+    """
+    def __init__(self, translation_cost_xpath):
+        self.translation_cost_xpath = translation_cost_xpath
+        self.initial_translation_cost_text = "z 10 zł"
+
+    def __call__(self, driver):
+        translation_cost = driver.find_element_by_xpath(self.translation_cost_xpath)
+
+        if len(translation_cost.text) != len(self.initial_translation_cost_text):
+            return True
+        else:
+            return False
+
 
 class TurboMainPage:
     """Page Object class for main page: 'https://turbotlumaczenia.pl/'"""
@@ -57,7 +97,6 @@ class TurboMainPage:
         self.decline_cookies_xpath = "//i[contains(@class, 'fa fa-times')]"
         self.decline_cookies_class_name = "fa-times"
         self.wycena_tlumaczenia_xpath = "//a[text()='Wycena tłumaczenia']"
-        # self.order_form_xpath = "//a[text()='Wycena tłumaczenia']"
 
     def click_decline_cookies(self):
         """Declining loading cookies method based on xpath selector."""
@@ -82,11 +121,15 @@ class TurboFormOrderPage:
         self.translateto_menu_xpath = "//div[contains(@class, 'content__input')]/span[@id='target_lang_label']"
         self.translateto_niemiecki_xpath = "//li[@data-name='Niemiecki']"
         self.proofreading_id = "proofreading"
+        self.translation_text_area_xpath = "//textarea[@id='content']"
+        self.estimated_time_value_xpath = "//span[@data-bind-expected-realisation-time=''][@class='content__strong']"
+        self.estimated_cost_value_xpath = "//span[@data-bind-expected-price=''][@class='content__strong']"
 
     def click_translateto_menu(self):
         self.driver.find_element_by_xpath(self.translateto_menu_xpath).click()
 
     def choose_translateto_niemiecki(self):
+        """Choosing target language  of translation as german."""
         niemiecki_buttons = self.driver.find_elements_by_xpath(self.translateto_niemiecki_xpath)
         for niemiecki in niemiecki_buttons:
             if niemiecki.is_displayed():
@@ -96,16 +139,69 @@ class TurboFormOrderPage:
         """Choosing additional native speaker proofreading."""
         self.driver.find_element_by_id(self.proofreading_id).click()
 
+    def provide_text_to_translation_area(self, text_input):
+        """Injecting source text to be translated to translation area."""
+        translation_text_area = self.driver.find_element_by_xpath(self.translation_text_area_xpath)
+        translation_text_area.click()
+        translation_text_area.send_keys(" ".join(text_input.split()))
+
+    def is_estimated_time_value_visible(self) -> bool:
+        """Method checks if estimated time value has been recalculated and if result is visible.
+
+        It is done in 2 steps:
+        -- 1. initial check if estimated time value is displayed
+        -- 2. checking if value has been recalculated (not displaying def values) by using Custom Wait
+        method returns True/False value"""
+        estimated_time_value = self.driver.find_element_by_xpath(self.estimated_time_value_xpath)
+        if estimated_time_value.is_displayed():
+            exp_wait = WebDriverWait(self.driver, 10)
+            return exp_wait.until(TimeEstimationHasBeenDone(self.estimated_time_value_xpath))
+        else:
+            return False
+
+    def is_estimated_cost_value_visible(self) -> bool:
+        """Method checks if estimated cost value has been recalculated and if result is visible.
+
+        It is done in 2 steps:
+        -- 1. initial check if estimated cost value is displayed
+        -- 2. checking if value has been recalculated (not displaying def values) by using Custom Wait
+        method returns True/False value"""
+        estimated_cost_value = self.driver.find_element_by_xpath(self.estimated_cost_value_xpath)
+        if estimated_cost_value.is_displayed():
+            exp_wait = WebDriverWait(self.driver, 10)
+            return exp_wait.until(CostEstimationHasBeenDone(self.estimated_cost_value_xpath))
+        else:
+            return False
+
+
+# https://bugs.chromium.org/p/chromedriver/issues/detail?id=3671&q=polish&can=1
+#
+# issues with Polish (Programmers) keyboard
+# keyboard Polski(214) works fine.
+# https://chromedriver.chromium.org/help/keyboard-support
+
+# Issues with sending long text by Selenium "send_keys"
+# https://github.com/seleniumhq/selenium-google-code-issue-archive/issues/3732
+#
+# Selenium performance is restricted by the requirement to emulate user behaviour. That's the reason why it types the text "key by key".
+# If you want to overcome this restriction you have two options:
+# 1) Pasting the text from the clipboard (for local use only)
+# 2) Executing JavaScript code that directly assigns value of the target element
+# JavascriptExecutor js = (JavascriptExecutor ) driver;
+# js.executeScript("arguments[0].value='"+longText+"'", element);
 
 class TestDogadamyCie:
 
     @pytest.fixture()
     def setup(self):
-        self.driver = webdriver.Chrome(ChromeDriverManager().install())
-        self.driver.implicitly_wait(10)
+        self.chrome_options = Options()
+        # self.chrome_options.add_experimental_option('prefs', {'intl.accept_languages': 'en,en_US'})
+        self.chrome_options.add_argument("--lang=pl")
+        self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=self.chrome_options)
+        # self.driver.implicitly_wait(10)
         self.driver.maximize_window()
         yield
-        #self.driver.quit()
+        self.driver.quit()
 
     @pytest.mark.skip()
     def test_dogadamycie1(self, setup):
@@ -113,7 +209,14 @@ class TestDogadamyCie:
         self.driver.get("https://turbotlumaczenia.pl/")
         main_turbo_page = TurboMainPage(self.driver)
         main_turbo_page.click_decline_cookies()
-        self.driver.quit()
+        main_turbo_page.goto_wycena_tlumaczenia()
+        form_order_page = TurboFormOrderPage(self.driver)
+        form_order_page.click_translateto_menu()
+        form_order_page.choose_translateto_niemiecki()
+        form_order_page.choose_add_proofreading()
+        form_order_page.provide_text_to_translation_area(TEXT_TRANSLATE)
+        assert form_order_page.is_estimated_time_value_visible(), "Estimated time is not properly displayed"
+        assert form_order_page.is_estimated_cost_value_visible(), "Estimated cost is not properly displayed"
 
     def test_dogadamycie2(self, setup):
         """Test2: Aceepted Cookies flow."""
@@ -125,3 +228,6 @@ class TestDogadamyCie:
         form_order_page.click_translateto_menu()
         form_order_page.choose_translateto_niemiecki()
         form_order_page.choose_add_proofreading()
+        form_order_page.provide_text_to_translation_area(TEXT_TRANSLATE)
+        assert form_order_page.is_estimated_time_value_visible(), "Estimated time is not properly displayed"
+        assert form_order_page.is_estimated_cost_value_visible(), "Estimated cost is not properly displayed"
