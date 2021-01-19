@@ -16,25 +16,12 @@ from pages.TurboFormOrderPage import TurboFormOrderPage
 
 import pytest
 
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
-
 from texts_as_py_modules.text1 import TEXT_TO_TRANSLATE
 
 
+@pytest.mark.usefixtures("setup")
 class TestDogadamyCie:
     """Pytest test class implementing test cases for the given scenario."""
-
-    @pytest.fixture()
-    def setup(self):
-        self.chrome_options = Options()
-        self.chrome_options.add_argument("--lang=pl")
-        self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=self.chrome_options)
-        # self.driver.implicitly_wait(10)
-        self.driver.maximize_window()
-        yield
-        self.driver.quit()
 
     @pytest.mark.skip()
     def test_dogadamycie1(self, setup):
