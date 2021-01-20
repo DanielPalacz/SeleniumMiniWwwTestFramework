@@ -1,3 +1,4 @@
+import logging
 
 from selenium.webdriver.support.wait import WebDriverWait
 
@@ -45,6 +46,7 @@ class TurboFormOrderPage:
     """Page Object class for Order Form page: 'https://panel.turbotlumaczenia.pl/pl/order/write?from=cta'"""
 
     def __init__(self, webdriver_el):
+        self.logger = logging.getLogger(__name__)
         self.driver = webdriver_el
         self.translateto_menu_xpath = "//div[contains(@class, 'content__input')]/span[@id='target_lang_label']"
         self.translateto_niemiecki_xpath = "//li[@data-name='Niemiecki']"
@@ -55,10 +57,12 @@ class TurboFormOrderPage:
 
     def click_translateto_menu(self):
         """Opening target language menu."""
+        self.logger.info(f"Openning translateto menu.")
         self.driver.find_element_by_xpath(self.translateto_menu_xpath).click()
 
     def choose_translateto_niemiecki(self):
         """Choosing target language of translation as german."""
+        self.logger.info(f"Choosing target language of translation as german.")
         niemiecki_buttons = self.driver.find_elements_by_xpath(self.translateto_niemiecki_xpath)
         for niemiecki in niemiecki_buttons:
             if niemiecki.is_displayed():
@@ -66,10 +70,12 @@ class TurboFormOrderPage:
 
     def choose_add_proofreading(self):
         """Choosing additional native speaker proofreading."""
+        self.logger.info(f"Choosing additional native speaker proofreading.")
         self.driver.find_element_by_id(self.proofreading_id).click()
 
     def provide_text_to_translation_area(self, text_input):
         """Injecting source text to be translated to translation area."""
+        self.logger.info(f"Injecting source text to be translated to translation area.")
         translation_text_area = self.driver.find_element_by_xpath(self.translation_text_area_xpath)
         translation_text_area.click()
         translation_text_area.send_keys(" ".join(text_input.split()))
@@ -80,6 +86,7 @@ class TurboFormOrderPage:
         -- 1. initial check if estimated time value is displayed
         -- 2. checking if value has been recalculated (not displaying def values) by using Custom Wait
         method returns True/False value"""
+        self.logger.info(f"Checking if estimated time value has been recalculated and if it is visible.")
         estimated_time_value = self.driver.find_element_by_xpath(self.estimated_time_value_xpath)
         if estimated_time_value.is_displayed():
             exp_wait = WebDriverWait(self.driver, 10)
@@ -93,6 +100,7 @@ class TurboFormOrderPage:
         -- 1. initial check if estimated cost value is displayed
         -- 2. checking if value has been recalculated (not def values) by using Custom Wait
         method returns True/False value"""
+        self.logger.info(f"Checking if cost value has been recalculated and if it is visible.")
         estimated_cost_value = \
             self.driver.find_element_by_xpath(self.estimated_cost_value_xpath)
         if estimated_cost_value.is_displayed():
