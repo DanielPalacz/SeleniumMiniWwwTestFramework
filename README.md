@@ -1,1 +1,1 @@
-# SeleniumTaskDogadamyCie
+# Selenium Mini Test Framework
