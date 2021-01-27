@@ -1,1 +1,3 @@
-# Selenium Mini Test Framework
+### Selenium Mini Test Framework
+
+#### Python, Pytest, Page Object Pattern
